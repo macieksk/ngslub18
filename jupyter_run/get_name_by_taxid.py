@@ -5,20 +5,32 @@ ncbi = NCBITaxa()
 tax_ids = []
 with open("ids.txt") as file:  
     for line in file:
-        tax_ids.append(line)
+        tax_ids.append(int(line.rstrip()))
 
 family_ids = []
 
 for id in tax_ids:
     taxid2lineage = ncbi.get_lineage(id)
     ranks = ncbi.get_rank(taxid2lineage)
-    family_ids.append(list(ranks.keys())[list(ranks.values()).index('family')])
+    try:
+        family_ids.append([id, list(ranks.keys())[list(ranks.values()).index('family')]])
+    except:
+        pass
 
-taxid2name = ncbi.get_taxid_translator(family_ids)
-print(taxid2name)
+final_ids = []
+
+for id in family_ids:
+    print(id[0], id[1])
+    taxid2name = ncbi.get_taxid_translator([id[1]])
+    final_ids.append(taxid2name)
+
+print(final_ids)
 
 tsv_file = "family_names.tsv"
 
+i = 0
 with open(tsv_file, 'w') as tsvfile:
-   for key, value in taxid2name.items():
-      tsvfile.write(str(key) + "\t" + value + "\n")
+    for id in final_ids:
+        for key, value in id.items():
+            tsvfile.write(str(family_ids[i][0]) + "\t" + str(key) + "\t" + value + "\n")
+        i = i + 1
